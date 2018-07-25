@@ -27,7 +27,7 @@ public class MapController {
 	* @param @return    参数
 	* @author wuxuecheng
 	* @return AwayDO    返回类型
-	* @throws
+	* @throws nothing
 	 */
 	@RequestMapping(value = "test", method = RequestMethod.GET)
 	public AwayDO test() {
