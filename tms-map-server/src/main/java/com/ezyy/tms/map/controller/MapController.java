@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ezyy.tms.map.domain.AwayDO;
 import com.ezyy.tms.map.domain.PointDO;
+import com.ezyy.tms.map.enums.FarNearMod;
 import com.ezyy.tms.map.service.MapService;
+
 
 @RestController
 @RequestMapping("/map")
@@ -69,7 +71,7 @@ public class MapController {
 	* @throws
 	 */
 	@RequestMapping(value = "/ptpl/{origin}/{destinations}/{policy}", method = RequestMethod.GET)
-	public List<AwayDO> pointToPointListPath(
+	public List<PointDO> pointToPointListPath(
 			@PathVariable(value="origin",required=true)String origin,
 			@PathVariable(value="destinations",required=true)String destinations ,
 			@PathVariable(value="policy",required=true)int policy){
@@ -79,7 +81,32 @@ public class MapController {
 		for(String destination: destinationList) {
 			pointDOList.add(PointDO.getPointDOFromString(destination));
 		}
-		return mapService.getOnePointToArrayPointAway(policy,PointDO.getPointDOFromString(origin) , pointDOList);
+		
+		List<PointDO> orderedPointDOList=new ArrayList<PointDO>();
+		return mapService.getPointDOOrder(PointDO.getPointDOFromString(origin), pointDOList, policy, FarNearMod.NEAR, orderedPointDOList);
+		//return mapService.getOnePointToArrayPointAway(policy,PointDO.getPointDOFromString(origin) , pointDOList);
 	}
+	
+	
+	@RequestMapping(value = "/ptlo/{origin}/{destinations}/{policy}", method = RequestMethod.GET)
+	public List<AwayDO> pointToPointListOrderPath(
+			@PathVariable(value="origin",required=true)String origin,
+			@PathVariable(value="destinations",required=true)String destinations ,
+			@PathVariable(value="policy",required=true)int policy){
+		
+		String[] destinationList=destinations.split("\\|");
+		List<PointDO> pointDOList=new ArrayList<PointDO>();
+		for(String destination: destinationList) {
+			pointDOList.add(PointDO.getPointDOFromString(destination));
+		}
+		
+		List<PointDO> orderedPointDOList=new ArrayList<PointDO>();
+		orderedPointDOList= mapService.getPointDOOrder(PointDO.getPointDOFromString(origin), pointDOList, policy, FarNearMod.NEAR, orderedPointDOList);
+		List<AwayDO> orderedAwayDOList=new ArrayList<AwayDO>();
+		return mapService.getAwayDOOrder(PointDO.getPointDOFromString(origin), orderedPointDOList, policy, FarNearMod.NEAR, orderedAwayDOList);
+		//return mapService.getOnePointToArrayPointAway(policy,PointDO.getPointDOFromString(origin) , pointDOList);
+	}
+	
+	
 
 }

@@ -55,8 +55,39 @@ public interface MapService {
     * @return List<AwayDO>    返回类型
     * @throws
      */
-    public List<AwayDO> getAwayDOOrder(PointDO originPointDO,List<PointDO> pointDOList,int policy,FarNearMod farnearmod,List<AwayDO> awayDOList);
+    public List<PointDO> getPointDOOrder(PointDO originPointDO,List<PointDO> pointDOList,int policy,FarNearMod farnearmod,List<PointDO> orderedPointDOList);
 
     
+    /**
+     * 一个点到一系列点的路线信息
+    * @Title: getAwayDOOrder
+    * @Description: TODO(一个点到一系列点的路线信息)
+    * @param @param originPointDO  起点
+    * @param @param orderedPointDOList  目的暗点列表
+    * @param @param policy  策略
+    * @param @param farnearmod  由远及近还是由近及远
+    * @param @param awayDOList  存放排序后的路径信息
+    * @param @return    排序后的路径
+    * @author wuxuecheng
+    * @return List<AwayDO>    返回类型
+    * @throws
+     */
+    public List<AwayDO> getAwayDOOrder(PointDO originPointDO,List<PointDO> orderedPointDOList,int policy,FarNearMod farnearmod,List<AwayDO> awayDOList);
+
+    /**
+     * 排序好的点的线路信息
+    * @Title: getAwayDOOrder
+    * @Description: TODO(排序好的点的线路信息)
+    * @param @param orderedPointDOList  排序好的点的队列
+    * @param @param policy  策略
+    * @param @param farnearmod  由远及近还是由近及远
+    * @param @param awayDOList  存放排序后的路径信息
+    * @param @return    排序后的路径
+    * @author wuxuecheng
+    * @return List<AwayDO>    返回类型
+    * @throws
+     */
+    public List<AwayDO> getAwayDOOrder(List<PointDO> orderedPointDOList,int policy,FarNearMod farnearmod,List<AwayDO> awayDOList);
+
 
 }

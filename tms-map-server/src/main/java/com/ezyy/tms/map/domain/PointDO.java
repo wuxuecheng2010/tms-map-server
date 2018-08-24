@@ -16,7 +16,7 @@ public class PointDO implements Serializable {
     public PointDO() {
     }
 
-    public PointDO(String lng, String lat) {
+    public PointDO( String lat ,String lng) {
         this.lng = lng;
         this.lat = lat;
     }
@@ -50,9 +50,9 @@ public class PointDO implements Serializable {
 	@Override
     public String toString() {
         StringBuilder builder =new StringBuilder();
-        return builder.append(lng)
+        return builder.append(lat)
                 .append(",")
-                .append(lat)
+                .append(lng)
                 .toString();
     }
 	

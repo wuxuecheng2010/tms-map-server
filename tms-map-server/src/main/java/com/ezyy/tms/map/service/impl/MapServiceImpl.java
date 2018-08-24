@@ -16,10 +16,14 @@ import com.ezyy.tms.map.pojo.MapAwayExample.Criteria;
 import com.ezyy.tms.map.service.MapService;
 import com.ezyy.tms.map.utils.DateHelper;
 import com.ezyy.tms.map.utils.HttpRequest;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+@Slf4j
 @Service
 public class MapServiceImpl implements MapService {
 	
@@ -42,7 +46,7 @@ public class MapServiceImpl implements MapService {
 		criteria.andOriginEqualTo(origin);
 		criteria.andDestinationEqualTo(destination);
 		criteria.andStopflagEqualTo(0);
-		criteria.andPolicyEqualTo(0);
+		criteria.andPolicyEqualTo(policy);
 		criteria.andCredateGreaterThan(DateHelper.getDateBefore(new Date(), 45));
 		List<MapAway> list=mapAwayMapper.selectByExample(example);
 		if(list!=null && list.size()>0) {
@@ -66,11 +70,13 @@ public class MapServiceImpl implements MapService {
 	            JSONArray steps = route0.getJSONArray("steps");
 	            String path = "";
 	            for (int i = 0; i < steps.size(); i++) {
-	                path += steps.getJSONObject(i).getString("path");
+	                path += steps.getJSONObject(i).getString("path")+";";
 	            }
 	            awayDO = new AwayDO();
 	            awayDO.setDistance(distance);
 	            awayDO.setDuration(duration);
+	            if(path!=null && path.length()>1)
+	            	path=path.substring(0, path.length()-1);
 	            awayDO.setPath(path);
 	            PointDO originPointDO=PointDO.getPointDOFromString(origin);
 	            PointDO destinationPointDO=PointDO.getPointDOFromString(destination);
@@ -109,8 +115,8 @@ public class MapServiceImpl implements MapService {
 	}
 
 	@Override
-	public List<AwayDO> getAwayDOOrder(PointDO originPointDO, List<PointDO> pointDOList, int policy, FarNearMod farnearmod,
-			List<AwayDO> awayDOList) {
+	public List<PointDO> getPointDOOrder(PointDO originPointDO, List<PointDO> pointDOList, int policy, FarNearMod farnearmod,
+			List<PointDO> orderedPointDOList) {
         if(pointDOList!=null && pointDOList.size()>0) {
         	List<AwayDO> _awayDOList=new  ArrayList<AwayDO>();//临时保存一个点到很多点的路径信息
         	for(PointDO point: pointDOList) {
@@ -119,14 +125,39 @@ public class MapServiceImpl implements MapService {
     		}
         	Collections.sort(_awayDOList);//按照AwayDO实现的Compareable接口规则排序
         	AwayDO _awayDO=_awayDOList.get(0);
-        	awayDOList.add(_awayDO);
+        	orderedPointDOList.add(_awayDO.getDestinationPointDO());
         	//获取已经存放的点  并且做为下次排序的起点
         	PointDO _point=_awayDO.getDestinationPointDO();
         	int index=pointDOList.indexOf(_point);
         	//移除本次已经获选的点 
         	pointDOList.remove(index);
-        	getAwayDOOrder(_point,pointDOList,policy,farnearmod,awayDOList);
+        	getPointDOOrder(_point,pointDOList,policy,farnearmod,orderedPointDOList);
         }
+		return orderedPointDOList;
+	}
+
+	@Override
+	public List<AwayDO> getAwayDOOrder(PointDO originPointDO, List<PointDO> orderedPointDOList, int policy,
+			FarNearMod farnearmod, List<AwayDO> awayDOList) {
+		orderedPointDOList.add(0, originPointDO);
+		return getAwayDOOrder( orderedPointDOList,  policy,  farnearmod,awayDOList);
+	}
+
+	@Override
+	public List<AwayDO> getAwayDOOrder(List<PointDO> orderedPointDOList, int policy, FarNearMod farnearmod,
+			List<AwayDO> awayDOList) {
+		if(orderedPointDOList!=null && orderedPointDOList.size()>=2) {
+			for(int i=0;i<=orderedPointDOList.size()-2;i++) {
+				//获取起点与终点的信息
+				PointDO originPointDO=orderedPointDOList.get(i);
+				PointDO destinationPointDO=orderedPointDOList.get(i+1);
+				//获取起点到终点的线路
+				AwayDO awayDO=this.getTwoPointAway(policy, originPointDO, destinationPointDO);
+				awayDOList.add(awayDO);
+			}
+		}else {
+			log.error("对不起,点列表的点数不能小于2..............");
+		}
 		return awayDOList;
 	}
 
